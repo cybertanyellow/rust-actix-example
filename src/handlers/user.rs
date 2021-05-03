@@ -8,6 +8,7 @@ use rayon::prelude::*;
 use serde::Serialize;
 use uuid::Uuid;
 use validator::Validate;
+use crate::cache::*;
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct UserResponse {
@@ -62,6 +63,34 @@ pub struct UpdateUserRequest {
     pub email: String,
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+pub enum Security {
+    NONE,
+    WPA2PSK,
+}
+
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
+pub struct WifiResponse {
+    pub radio: u8,
+    pub hotspot: bool,
+    pub ssid: String,
+    pub hide: bool,
+    pub security: Security,
+    pub password: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
+pub struct WifisResponse(pub Vec<WifiResponse>);
+
+#[derive(Clone, Debug, Deserialize, Serialize, Validate)]
+pub struct UpdateWifiRequest {
+    pub radio: u8,
+    pub hotspot: bool,
+    pub ssid: String,
+    pub hide: bool,
+    pub security: Security,
+    pub password: String,
+}
 /// Get a user
 pub async fn get_user(
     user_id: Path<Uuid>,
@@ -69,6 +98,23 @@ pub async fn get_user(
 ) -> Result<Json<UserResponse>, ApiError> {
     let user = block(move || find(&pool, *user_id)).await?;
     respond_json(user)
+}
+
+pub async fn get_wifi(
+    id: Path<u8>,
+    cache: Cache,
+) -> Result<Json<WifiResponse>, ApiError> {
+    set(cache.clone(), "hello", "world").await?;
+    let wifi = WifiResponse {
+        radio: get(cache.clone(), format!("wifi/{}/radio", id).as_str()).await.unwrap().parse::<u8>().unwrap(),
+        //ssid: String::from("tbox-2.4-test"),
+        ssid: get(cache.clone(), format!("wifi/{}/ssid", id).as_str()).await?,
+        hide: false,
+        hotspot: true,
+        security: Security::WPA2PSK,
+        password: get(cache.clone(), format!("wifi/{}/password", id).as_str()).await?
+    };
+    respond_json(wifi)
 }
 
 /// Get all users

@@ -8,17 +8,17 @@ use rayon::prelude::*;
 use serde::Serialize;
 use uuid::Uuid;
 use validator::Validate;
+use crate::cache::*;
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
-pub struct UserResponse {
-    pub id: Uuid,
-    pub first_name: String,
-    pub last_name: String,
-    pub email: String,
+pub struct TopicResponse {
+    pub topic: String,
+    pub id: u8,
+    pub status: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
-pub struct UsersResponse(pub Vec<UserResponse>);
+pub struct UsersResponse(pub Vec<TopicResponse>);
 
 #[derive(Clone, Debug, Deserialize, Serialize, Validate)]
 pub struct CreateUserRequest {
@@ -62,10 +62,11 @@ pub struct UpdateUserRequest {
     pub email: String,
 }
 
-/// Get a user
-pub async fn get_user(
-    user_id: Path<Uuid>,
-    pool: Data<PoolType>,
+/// Get a topic
+pub async fn get_topic(
+    topic: Path<String>,
+    tid: Path<u8>,
+    cache: Cache,
 ) -> Result<Json<UserResponse>, ApiError> {
     let user = block(move || find(&pool, *user_id)).await?;
     respond_json(user)

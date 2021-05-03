@@ -72,6 +72,7 @@ pub mod tests {
     fn it_hashes_a_password() {
         let password = "password";
         let hashed = hash(password);
+        println!("{} vs {}", password, hashed);
         assert_ne!(password, hashed);
     }
 

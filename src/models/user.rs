@@ -3,7 +3,7 @@ use crate::database::PoolType;
 use crate::errors::ApiError;
 use crate::handlers::user::{UserResponse, UsersResponse};
 use crate::schema::users;
-use chrono::{NaiveDateTime, Utc};
+//use chrono::{NaiveDateTime, Utc};
 use diesel::prelude::*;
 use uuid::Uuid;
 
@@ -15,9 +15,9 @@ pub struct User {
     pub email: String,
     pub password: String,
     pub created_by: String,
-    pub created_at: NaiveDateTime,
+    //pub created_at: NaiveDateTime,
     pub updated_by: String,
-    pub updated_at: NaiveDateTime,
+    //pub updated_at: NaiveDateTime,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -80,6 +80,8 @@ pub fn find_by_auth(
 ) -> Result<UserResponse, ApiError> {
     use crate::schema::users::dsl::{email, password, users};
 
+    println!("user_email={} user_password={}", user_email, user_password);
+
     let conn = pool.get()?;
     let user = users
         .filter(email.eq(user_email.to_string()))
@@ -130,9 +132,9 @@ impl From<NewUser> for User {
             email: user.email,
             password: hash(&user.password),
             created_by: user.created_by,
-            created_at: Utc::now().naive_utc(),
+            //created_at: Utc::now().naive_utc(),
             updated_by: user.updated_by,
-            updated_at: Utc::now().naive_utc(),
+            //updated_at: Utc::now().naive_utc(),
         }
     }
 }
